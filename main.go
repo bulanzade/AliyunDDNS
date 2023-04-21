@@ -62,7 +62,18 @@ func updateSubDomainRecord(client *alidns.Client, recordId string, value string,
 	return
 }
 
-func ddns(config Config, client *alidns.Client) {
+func ddns() {
+	// read config
+	config, err := readConfig("config.json")
+	if err != nil {
+		log.Fatalf("Failed to read config file: %#v\n", err)
+	}
+	log.Printf("Current config: %#v\n", config)
+	// create client
+	client, err := alidns.NewClientWithAccessKey("cn-hangzhou", config.AccessIdKey, config.AccessSecret)
+	if err != nil {
+		log.Fatalf("Failed to create client: %#v\n", err)
+	}
 	// get ip
 	ip, err := getIP()
 	if err != nil {
@@ -97,21 +108,10 @@ func main() {
 	log.SetOutput(logFile)
 	defer logFile.Close()
 
-	// read config
-	config, err := readConfig("config.json")
-	if err != nil {
-		log.Fatalf("Failed to read config file: %#v\n", err)
-	}
-	log.Printf("Current config: %#v\n", config)
 
-	// create client
-	client, err := alidns.NewClientWithAccessKey("cn-hangzhou", config.AccessIdKey, config.AccessSecret)
-	if err != nil {
-		log.Fatalf("Failed to create client: %#v", err)
-	}
 
 	s := gocron.NewScheduler(time.FixedZone("UTC+8", 0))
-	_, err = s.Every(5).Minutes().Do(ddns, config, client)
+	_, err = s.Every(5).Minutes().Do(ddns)
 	if err != nil {
 		log.Fatalln(err)
 	}
