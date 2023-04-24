@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/alidns"
 	"github.com/go-co-op/gocron"
 	"io"
@@ -46,7 +47,14 @@ func getSubDomainRecord(client *alidns.Client, subDomain string, domain string) 
 	request.Scheme = "https"
 	request.SubDomain = subDomain + "." + domain
 	response, err := client.DescribeSubDomainRecords(request)
-	record = response.DomainRecords.Record[0]
+	recordSize := len(response.DomainRecords.Record)
+	if err == nil {
+		if recordSize > 0 {
+			record = response.DomainRecords.Record[0]
+		} else {
+			err = errors.New("record length is 0")
+		}
+	}
 	return
 }
 
@@ -107,8 +115,6 @@ func main() {
 	}
 	log.SetOutput(logFile)
 	defer logFile.Close()
-
-
 
 	s := gocron.NewScheduler(time.FixedZone("UTC+8", 0))
 	_, err = s.Every(5).Minutes().Do(ddns)

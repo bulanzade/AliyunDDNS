@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/aliyun/alibaba-cloud-sdk-go v1.62.235
-	github.com/go-co-op/gocron v1.22.4
+	github.com/go-co-op/gocron v1.23.0
 )
 
 require (
